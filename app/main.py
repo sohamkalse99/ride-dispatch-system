@@ -22,11 +22,12 @@ app.add_middleware(
 # Include our router
 app.include_router(router)
 
-# 1️⃣ Serve all static files (and index.html for SPA) at the root
-app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
 
 # 2️⃣ Then include your API **under** /api so it doesn’t clash with “/”
 app.include_router(api_router, prefix="/api")
+
+# 1️⃣ Serve all static files (and index.html for SPA) at the root
+app.mount("/", StaticFiles(directory="frontend", html=True), name="static")
 
 if __name__ == "__main__":
     import uvicorn
