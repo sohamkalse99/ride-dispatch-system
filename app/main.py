@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.endpoints import router
-
+from fastapi.staticfiles import StaticFiles
 # Create FastAPI application
 app = FastAPI(
     title="Ride Dispatch System",
@@ -20,6 +20,9 @@ app.add_middleware(
 
 # Include our router
 app.include_router(router)
+
+# Mount static files
+app.mount("/", StaticFiles(directory="frontend", html=True), name="frontend")
 
 if __name__ == "__main__":
     import uvicorn
