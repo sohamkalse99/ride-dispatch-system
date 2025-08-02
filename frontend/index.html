@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ride Dispatch System</title>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            color: white;
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        h2 {
+            color: #2c3e50;
+            border-bottom: 3px solid #3498db;
+            padding-bottom: 8px;
+            margin-bottom: 20px;
+            font-size: 1.4em;
+        }
+        h3 {
+            color: #34495e;
+            margin-top: 25px;
+            margin-bottom: 15px;
+            font-size: 1.1em;
+        }
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 25px;
+            align-items: flex-start;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .panel {
+            flex: 0 1 auto;
+            min-width: 300px;
+            max-width: 650px;
+            margin: 0;
+            padding: 25px;
+            border: none;
+            border-radius: 15px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .panel:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.15);
+        }
+        .grid-panel {
+            flex: 0 0 auto;
+            width: 650px;
+        }
+        .controls-panel {
+            flex: 1 1 380px;
+            min-width: 380px;
+        }
+        .state-panel {
+            flex: 1 1 1000px;
+            min-width: 1000px;
+        }
+        .grid-container {
+            position: relative;
+            width: 1000px;
+            height: 1000px;
+            border: 3px solid #2c3e50;
+            border-radius: 12px;
+            margin: 10px auto;
+            overflow: hidden;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            cursor: default;
+            flex-shrink: 0;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        .grid-container:hover {
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.15), 0 0 20px rgba(52, 152, 219, 0.2);
+        }
+        .entity {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            border: 2px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 0 3px rgba(0, 0, 0, 0.3);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+        .entity:hover {
+            transform: translate(-50%, -50%) scale(1.3);
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.4);
+            z-index: 20;
+        }
+        .driver {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            animation: pulse-blue 2s infinite;
+        }
+        .driver.on_trip {
+            background: linear-gradient(45deg, #9b59b6, #8e44ad);
+            animation: pulse-purple 1.5s infinite;
+        }
+        .driver.offline {
+            background: linear-gradient(45deg, #95a5a6, #7f8c8d);
+            animation: none;
+            opacity: 0.6;
+        }
+        @keyframes pulse-blue {
+            0%, 100% { box-shadow: 0 0 3px rgba(52, 152, 219, 0.3), 0 0 6px rgba(52, 152, 219, 0.2); }
+            50% { box-shadow: 0 0 6px rgba(52, 152, 219, 0.6), 0 0 12px rgba(52, 152, 219, 0.4); }
+        }
+        @keyframes pulse-purple {
+            0%, 100% { box-shadow: 0 0 3px rgba(155, 89, 182, 0.3), 0 0 6px rgba(155, 89, 182, 0.2); }
+            50% { box-shadow: 0 0 6px rgba(155, 89, 182, 0.6), 0 0 12px rgba(155, 89, 182, 0.4); }
+        }
+        .rider {
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+            animation: pulse-green 2.5s infinite;
+        }
+        @keyframes pulse-green {
+            0%, 100% { box-shadow: 0 0 3px rgba(46, 204, 113, 0.3), 0 0 6px rgba(46, 204, 113, 0.2); }
+            50% { box-shadow: 0 0 6px rgba(46, 204, 113, 0.6), 0 0 12px rgba(46, 204, 113, 0.4); }
+        }
+        .pickup {
+            background: linear-gradient(45deg, #f39c12, #e67e22);
+            border-radius: 2px;
+            width: 10px;
+            height: 10px;
+            z-index: 5;
+            animation: bounce 1s infinite;
+        }
+        .dropoff {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            border-radius: 2px;
+            width: 10px;
+            height: 10px;
+            z-index: 5;
+            animation: bounce 1s infinite 0.5s;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translate(-50%, -50%) scale(1); }
+            50% { transform: translate(-50%, -50%) scale(1.2); }
+        }
+        .path {
+            background-color: rgba(0, 0, 0, 0.2);
+            border-radius: 0;
+            width: 4px;
+            height: 4px;
+        }
+        .form-group {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #3498db;
+        }
+        .form-group:nth-child(even) {
+            border-left-color: #e74c3c;
+        }
+        .form-group:nth-child(3n) {
+            border-left-color: #2ecc71;
+        }
+        button {
+            padding: 12px 20px;
+            margin: 6px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            position: relative;
+            overflow: hidden;
+        }
+        button::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.5s;
+        }
+        button:hover::before {
+            left: 100%;
+        }
+        button:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+        }
+        button:active {
+            transform: translateY(-1px) scale(0.98);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+        }
+        .primary-btn {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+        }
+        .success-btn {
+            background: linear-gradient(45deg, #2ecc71, #27ae60);
+            color: white;
+        }
+        .danger-btn {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: white;
+        }
+        .secondary-btn {
+            background: linear-gradient(45deg, #95a5a6, #7f8c8d);
+            color: white;
+        }
+        input, select {
+            padding: 10px;
+            margin: 5px 0;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+            width: 100px;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+        input[readonly] {
+            background-color: #f8f9fa;
+            color: #6c757d;
+            cursor: not-allowed;
+        }
+        label {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-right: 10px;
+            display: inline-block;
+            min-width: 80px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        th, td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        th {
+            background: linear-gradient(45deg, #34495e, #2c3e50);
+            color: white;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 12px;
+        }
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+        tr:nth-child(even) {
+            background-color: #fdfdfd;
+        }
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            color: white;
+            font-size: 0.75em;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            transition: all 0.2s ease;
+        }
+        .status-badge:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        .status-available { background-color: green; }
+        .status-on_trip { background-color: blue; }
+        .status-offline { background-color: gray; }
+        .status-waiting { background-color: orange; }
+        .status-assigned { background-color: purple; }
+        .status-completed { background-color: green; }
+        .status-failed { background-color: red; }
+        .status-rejected { background-color: darkred; }
+    </style>
+</head>
+<body>
+    <h1>🚗 Ride Dispatch System</h1>
+    <div style="text-align: center; margin-bottom: 30px;">
+        <p style="color: white; font-size: 1.2em; margin: 0; opacity: 0.9;">Intelligent ride-hailing simulation with real-time dispatch optimization</p>
+    </div>
+    
+    <div class="container">
+        <div class="panel grid-panel">
+            <h2>🗺️ City Grid</h2>
+            <div style="margin-bottom: 15px;">
+                <button id="tickButton" class="primary-btn">⏭️ Next Tick</button>
+                <!-- <span style="margin-left: 15px; color: #7f8c8d; font-size: 0.9em;">Advance simulation by one time step</span> -->
+            </div>
+            <div class="grid-container" id="grid"></div>
+            <div style="margin-top: 15px; font-size: 0.9em; color: #7f8c8d;">
+                <strong>Legend:</strong> 
+                <span style="color: #3498db;">🔵 Available Driver</span> | 
+                <span style="color: #9b59b6;">🟣 Driver on Trip</span> | 
+                <span style="color: #2ecc71;">🟢 Rider</span> | 
+                <span style="color: #f39c12;">🟠 Pickup</span> | 
+                <span style="color: #e74c3c;">🔴 Dropoff</span>
+            </div>
+        </div>
+        
+        <div class="panel controls-panel">
+            <h2>🎮 Controls</h2>
+            <div style="background: #e8f4fd; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #3498db;">
+                <strong>💡 Quick Start:</strong>
+                <ol style="margin: 10px 0; padding-left: 20px; font-size: 0.9em;">
+                    <li>Add drivers and riders using grid click modes</li>
+                    <li>Select a rider to auto-fill pickup location</li>
+                    <li>Set dropoff location and request ride</li>
+                    <li>Watch the simulation with "Next Tick"</li>
+                </ol>
+            </div>
+            
+            <!-- Add Driver Form -->
+            <div class="form-group">
+                <h3>🚙 Add Driver</h3>
+                <div style="margin-bottom: 15px;">
+                    <label for="driverX">X Position:</label>
+                    <input type="number" id="driverX" min="0" max="99" value="0" placeholder="0-99">
+                    <label for="driverY" style="margin-left: 15px;">Y Position:</label>
+                    <input type="number" id="driverY" min="0" max="99" value="0" placeholder="0-99">
+                </div>
+                <button id="addDriverButton" class="primary-btn">➕ Add Driver</button>
+            </div>
+            
+            <!-- Add Rider Form -->
+            <div class="form-group">
+                <h3>🚶 Add Rider</h3>
+                <div style="margin-bottom: 15px;">
+                    <label for="riderX">X Position:</label>
+                    <input type="number" id="riderX" min="0" max="99" value="20" placeholder="0-99">
+                    <label for="riderY" style="margin-left: 15px;">Y Position:</label>
+                    <input type="number" id="riderY" min="0" max="99" value="20" placeholder="0-99">
+                </div>
+                <button id="addRiderButton" class="success-btn">➕ Add Rider</button>
+            </div>
+            
+            <!-- Request Ride Form -->
+            <div class="form-group">
+                <h3>🚖 Request Ride</h3>
+                <div style="margin-bottom: 15px;">
+                    <label for="riderSelect" style="display: block; margin-bottom: 8px;">Select Rider:</label>
+                    <select id="riderSelect" style="width: 100%; max-width: 300px;">
+                        <option value="">-- Select a rider --</option>
+                    </select>
+                </div>
+                <div style="background: linear-gradient(45deg, #f8f9fa, #e9ecef); padding: 15px; border-radius: 8px; margin: 15px 0; border: 2px dashed #6c757d;">
+                    <strong style="color: #495057;">📍 Pickup Location (Auto-filled):</strong><br>
+                    <div style="margin-top: 10px;">
+                        <label for="pickupX">Pickup X:</label>
+                        <input type="number" id="pickupX" min="0" max="99" value="0" readonly>
+                        <label for="pickupY" style="margin-left: 15px;">Pickup Y:</label>
+                        <input type="number" id="pickupY" min="0" max="99" value="0" readonly>
+                    </div>
+                </div>
+                <div style="margin-bottom: 15px;">
+                    <strong style="color: #2c3e50;">🎯 Choose Dropoff Location:</strong><br>
+                    <div style="margin-top: 10px;">
+                        <label for="dropoffX">Dropoff X:</label>
+                        <input type="number" id="dropoffX" min="0" max="99" value="50" placeholder="0-99">
+                        <label for="dropoffY" style="margin-left: 15px;">Dropoff Y:</label>
+                        <input type="number" id="dropoffY" min="0" max="99" value="50" placeholder="0-99">
+                    </div>
+                </div>
+                <button id="requestRideButton" class="success-btn">🚖 Request Ride</button>
+            </div>
+        </div>
+        
+        <div class="panel state-panel flex-1">
+            <h2>📊 System State</h2>
+            <div style="background: #f8f9fa; padding: 25px; border-radius: 8px; margin-bottom: 20px;">
+                <p style="margin: 0; font-size: 0.9em; color: #6c757d;">📈 Real-time monitoring of all system entities and their current status</p>
+            </div>
+            
+            <h3>🚗 Drivers</h3>
+            <div id="driversTable"></div>
+            
+            <h3>👥 Riders</h3>
+            <div id="ridersTable"></div>
+            
+            <h3>📋 Ride Requests</h3>
+            <div id="ridesTable"></div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
