@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.endpoints import router
+# from app.api.endpoints import router
 from fastapi.staticfiles import StaticFiles
 from app.api.endpoints import router as api_router
 # Create FastAPI application
@@ -20,7 +20,7 @@ app.add_middleware(
 )
 
 # Include our router
-app.include_router(router)
+# app.include_router(router)
 
 
 # 2️⃣ Then include your API **under** /api so it doesn’t clash with “/”
