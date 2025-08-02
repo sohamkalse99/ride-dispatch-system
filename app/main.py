@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.api.endpoints import router
 from fastapi.staticfiles import StaticFiles
+from app.api.api_router import api_router
 # Create FastAPI application
 app = FastAPI(
     title="Ride Dispatch System",
