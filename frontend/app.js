@@ -1,5 +1,6 @@
 // Configuration
-const API_URL = 'http://localhost:8000';
+// const API_URL = 'http://localhost:8000';
+const API_URL = window.location.origin;
 const GRID_SIZE = 100;
 const GRID_SCALE = 6; // 6px per grid unit
 
@@ -349,10 +350,10 @@ async function refreshState(showLoading = false) {
         }
         
         const [driversRes, ridersRes, ridesRes, stateRes] = await Promise.all([
-            fetch(`${API_URL}/drivers/`),
-            fetch(`${API_URL}/riders/`),
-            fetch(`${API_URL}/rides/`),
-            fetch(`${API_URL}/state`)
+            fetch(`${API_URL}/api/drivers/`),
+            fetch(`${API_URL}/api/riders/`),
+            fetch(`${API_URL}/api/rides/`),
+            fetch(`${API_URL}/api/state`)
         ]);
         
         if (!driversRes.ok || !ridersRes.ok || !ridesRes.ok || !stateRes.ok) {
@@ -665,7 +666,7 @@ function updateRiderSelect() {
 // Add a new driver at specified position
 async function addDriverAtPosition(x, y) {
     try {
-        const response = await fetch(`${API_URL}/drivers/`, {
+        const response = await fetch(`${API_URL}/api/drivers/`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ x, y })
@@ -700,7 +701,7 @@ async function addDriver() {
 // Remove a driver
 async function removeDriver(driverId) {
     try {
-        const response = await fetch(`${API_URL}/drivers/${driverId}`, {
+        const response = await fetch(`${API_URL}/api/drivers/${driverId}`, {
             method: 'DELETE'
         });
         
@@ -720,7 +721,7 @@ async function removeDriver(driverId) {
 // Add a new rider at specified position
 async function addRiderAtPosition(x, y) {
     try {
-        const response = await fetch(`${API_URL}/riders/`, {
+        const response = await fetch(`${API_URL}/api/riders/`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ x, y })
@@ -755,7 +756,7 @@ async function addRider() {
 // Remove a rider
 async function removeRider(riderId) {
     try {
-        const response = await fetch(`${API_URL}/riders/${riderId}`, {
+        const response = await fetch(`${API_URL}/api/riders/${riderId}`, {
             method: 'DELETE'
         });
         
@@ -803,7 +804,7 @@ async function requestRide() {
     }
     
     try {
-        const response = await fetch(`${API_URL}/rides/request`, {
+        const response = await fetch(`${API_URL}/api/rides/request`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -836,7 +837,7 @@ async function cancelRide(rideId) {
     }
     
     try {
-        const response = await fetch(`${API_URL}/rides/${rideId}/cancel`, {
+        const response = await fetch(`${API_URL}/api/rides/${rideId}/cancel`, {
             method: 'PUT'
         });
         
@@ -859,7 +860,7 @@ async function cancelRide(rideId) {
 // Enhanced advance simulation with loading states and animations
 async function advanceSimulation() {
     try {
-        const response = await fetch(`${API_URL}/tick`, {
+        const response = await fetch(`${API_URL}/api/tick`, {
             method: 'POST'
         });
         
